@@ -920,26 +920,31 @@ func NewCLI() *cobra.Command {
 			DisableDefaultCmd: true,
 		},
 		Version: version.Version,
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			if cmd.Name() != "serve" {
+				return checkServerHeartbeat(cmd, nil)
+			}
+
+			return nil
+		},
 	}
 
 	cobra.EnableCommandSorting = false
 
 	createCmd := &cobra.Command{
-		Use:     "create MODEL",
-		Short:   "Create a model from a Modelfile",
-		Args:    cobra.MinimumNArgs(1),
-		PreRunE: checkServerHeartbeat,
-		RunE:    CreateHandler,
+		Use:   "create MODEL",
+		Short: "Create a model from a Modelfile",
+		Args:  cobra.MinimumNArgs(1),
+		RunE:  CreateHandler,
 	}
 
 	createCmd.Flags().StringP("file", "f", "Modelfile", "Name of the Modelfile (default \"Modelfile\")")
 
 	showCmd := &cobra.Command{
-		Use:     "show MODEL",
-		Short:   "Show information for a model",
-		Args:    cobra.MinimumNArgs(1),
-		PreRunE: checkServerHeartbeat,
-		RunE:    ShowHandler,
+		Use:   "show MODEL",
+		Short: "Show information for a model",
+		Args:  cobra.MinimumNArgs(1),
+		RunE:  ShowHandler,
 	}
 
 	showCmd.Flags().Bool("license", false, "Show license of a model")
@@ -949,11 +954,10 @@ func NewCLI() *cobra.Command {
 	showCmd.Flags().Bool("system", false, "Show system prompt of a model")
 
 	runCmd := &cobra.Command{
-		Use:     "run MODEL [PROMPT]",
-		Short:   "Run a model",
-		Args:    cobra.MinimumNArgs(1),
-		PreRunE: checkServerHeartbeat,
-		RunE:    RunHandler,
+		Use:   "run MODEL [PROMPT]",
+		Short: "Run a model",
+		Args:  cobra.MinimumNArgs(1),
+		RunE:  RunHandler,
 	}
 
 	runCmd.Flags().Bool("verbose", false, "Show timings for response")
@@ -968,21 +972,19 @@ func NewCLI() *cobra.Command {
 	}
 
 	pullCmd := &cobra.Command{
-		Use:     "pull MODEL",
-		Short:   "Pull a model from a registry",
-		Args:    cobra.MinimumNArgs(1),
-		PreRunE: checkServerHeartbeat,
-		RunE:    PullHandler,
+		Use:   "pull MODEL",
+		Short: "Pull a model from a registry",
+		Args:  cobra.MinimumNArgs(1),
+		RunE:  PullHandler,
 	}
 
 	pullCmd.Flags().Bool("insecure", false, "Use an insecure registry")
 
 	pushCmd := &cobra.Command{
-		Use:     "push MODEL",
-		Short:   "Push a model to a registry",
-		Args:    cobra.MinimumNArgs(1),
-		PreRunE: checkServerHeartbeat,
-		RunE:    PushHandler,
+		Use:   "push MODEL",
+		Short: "Push a model to a registry",
+		Args:  cobra.MinimumNArgs(1),
+		RunE:  PushHandler,
 	}
 
 	pushCmd.Flags().Bool("insecure", false, "Use an insecure registry")
@@ -991,24 +993,21 @@ func NewCLI() *cobra.Command {
 		Use:     "list",
 		Aliases: []string{"ls"},
 		Short:   "List models",
-		PreRunE: checkServerHeartbeat,
 		RunE:    ListHandler,
 	}
 
 	copyCmd := &cobra.Command{
-		Use:     "cp",
-		Short:   "Copy a model",
-		Args:    cobra.MinimumNArgs(2),
-		PreRunE: checkServerHeartbeat,
-		RunE:    CopyHandler,
+		Use:   "cp",
+		Short: "Copy a model",
+		Args:  cobra.MinimumNArgs(2),
+		RunE:  CopyHandler,
 	}
 
 	deleteCmd := &cobra.Command{
-		Use:     "rm",
-		Short:   "Remove a model",
-		Args:    cobra.MinimumNArgs(1),
-		PreRunE: checkServerHeartbeat,
-		RunE:    DeleteHandler,
+		Use:   "rm",
+		Short: "Remove a model",
+		Args:  cobra.MinimumNArgs(1),
+		RunE:  DeleteHandler,
 	}
 
 	rootCmd.AddCommand(
