@@ -997,14 +997,14 @@ func NewCLI() *cobra.Command {
 	}
 
 	copyCmd := &cobra.Command{
-		Use:   "cp",
+		Use:   "cp FROM TO",
 		Short: "Copy a model",
 		Args:  cobra.MinimumNArgs(2),
 		RunE:  CopyHandler,
 	}
 
 	deleteCmd := &cobra.Command{
-		Use:   "rm",
+		Use:   "rm MODEL",
 		Short: "Remove a model",
 		Args:  cobra.MinimumNArgs(1),
 		RunE:  DeleteHandler,
