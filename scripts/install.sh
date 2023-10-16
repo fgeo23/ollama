@@ -100,8 +100,44 @@ EOF
     esac
 }
 
+migrate_systemd() {
+    # Check if the ollama service exists and is running
+    if systemctl is-active --quiet ollama; then
+        # Extract the User value from the service configuration
+        SERVICE_USER=$(systemctl show -p User --value ollama)
+
+        # If the service is running as the "ollama" user, stop it, copy content to the user's home, and remove it
+        if [ "$SERVICE_USER" = "ollama" ]; then
+            status "Ollama service is currently running as 'ollama' user. Migrating..."
+            
+            # Stop the service
+            $SUDO systemctl stop ollama > /dev/null 2>&1
+
+            # Disable the service to prevent it from starting on boot
+            $SUDO systemctl disable ollama > /dev/null 2>&1
+
+            # Remove the systemd service file
+            $SUDO rm /etc/systemd/system/ollama.service > /dev/null 2>&1
+
+            # Copy the contents of /usr/share/ollama to $HOME/.ollama if the directory doesn't exist
+            if [ ! -d "$HOME/.ollama" ]; then
+                $SUDO cp -r /usr/share/ollama "$HOME/.ollama"
+            fi
+
+            # Reload systemd configuration to recognize service removal
+            $SUDO systemctl daemon-reload > /dev/null 2>&1
+
+            # Remove the ollama user
+            $SUDO userdel -r ollama > /dev/null 2>&1
+        fi
+    fi
+}
+
 # Setup an Ollama background service for the user if systemd is available along with the tools required to get information about the current user.
 if available systemctl whoami id; then
+    # Ollama used to be installed as a systemd service running as the "ollama" user, remove that if it exists.
+    migrate_systemd
+    # Install the Ollama systemd service
     configure_systemd
 fi
 
