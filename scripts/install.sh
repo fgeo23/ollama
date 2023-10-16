@@ -68,14 +68,6 @@ trap install_success EXIT
 # Everything from this point onwards is optional.
 
 configure_systemd() {
-    if ! id ollama >/dev/null 2>&1; then
-        status "Creating ollama user..."
-        $SUDO useradd -r -s /bin/false -m -d /usr/share/ollama ollama
-    fi
-
-    status "Adding current user to ollama group..."
-    $SUDO usermod -a -G $(whoami) ollama
-
     status "Creating ollama systemd service..."
     cat <<EOF | $SUDO tee /etc/systemd/system/ollama.service >/dev/null
 [Unit]
@@ -84,16 +76,17 @@ After=network-online.target
 
 [Service]
 ExecStart=$BINDIR/ollama serve
-User=ollama
-Group=ollama
+User=$(whoami)
+Group=$(id -gn)
 Restart=always
 RestartSec=3
-Environment="HOME=/usr/share/ollama"
+Environment="HOME=$(eval echo ~$(whoami))"
 Environment="PATH=$PATH"
 
 [Install]
 WantedBy=default.target
 EOF
+
     SYSTEMCTL_RUNNING="$(systemctl is-system-running || true)"
     case $SYSTEMCTL_RUNNING in
         running|degraded)
@@ -107,7 +100,8 @@ EOF
     esac
 }
 
-if available systemctl; then
+# Setup an Ollama background service for the user if systemd is available along with the tools required to get information about the current user.
+if available systemctl whoami id; then
     configure_systemd
 fi
 
