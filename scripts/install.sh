@@ -74,15 +74,10 @@ configure_systemd() {
     fi
 
     status "Adding current user to ollama group..."
-    $SUDO usermod -a -G ollama $(whoami)
-    # Allow the ollama user to access the current user's files
-    # TODO: This can be removed when model creation does not require access to the current user's files
-    status "Adding ollama to the current user group..."
     $SUDO usermod -a -G $(whoami) ollama
 
-    if [ ! -f /etc/systemd/system/ollama.service ]; then
-        status "Creating ollama systemd service..."
-        cat <<EOF | $SUDO tee /etc/systemd/system/ollama.service >/dev/null
+    status "Creating ollama systemd service..."
+    cat <<EOF | $SUDO tee /etc/systemd/system/ollama.service >/dev/null
 [Unit]
 Description=Ollama Service
 After=network-online.target
@@ -99,17 +94,17 @@ Environment="PATH=$PATH"
 [Install]
 WantedBy=default.target
 EOF
-        $SUDO systemctl daemon-reload
-        $SUDO systemctl enable ollama
-    else
-        SYSTEMCTL_RUNNING="$(systemctl is-system-running || true)"
-        case $SYSTEMCTL_RUNNING in
-            running|degraded)
-                status "Restarting ollama service..."
-                $SUDO systemctl restart ollama
-                ;;
-        esac
-    fi
+    SYSTEMCTL_RUNNING="$(systemctl is-system-running || true)"
+    case $SYSTEMCTL_RUNNING in
+        running|degraded)
+            status "Enabling and starting ollama service..."
+            $SUDO systemctl daemon-reload
+            $SUDO systemctl enable ollama
+
+            start_service() { $SUDO systemctl restart ollama; }
+            trap start_service EXIT
+            ;;
+    esac
 }
 
 if available systemctl; then
