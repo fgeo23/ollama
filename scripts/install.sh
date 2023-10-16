@@ -121,6 +121,7 @@ migrate_systemd() {
 
             # Copy the contents of /usr/share/ollama to $HOME/.ollama if the directory doesn't exist
             if [ ! -d "$HOME/.ollama" ]; then
+                $SUDO mkdir "$HOME/.ollama"
                 $SUDO cp -r /usr/share/ollama/.ollama/* "$HOME/.ollama"
 
                 # Adjusting permissions and ownership after copying
