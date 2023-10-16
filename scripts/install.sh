@@ -111,17 +111,17 @@ migrate_systemd() {
             status "Ollama service is currently running as 'ollama' user. Migrating..."
             
             # Stop the service
-            $SUDO systemctl stop ollama > /dev/null 2>&1
+            $SUDO systemctl stop ollama
 
             # Disable the service to prevent it from starting on boot
-            $SUDO systemctl disable ollama > /dev/null 2>&1
+            $SUDO systemctl disable ollama
 
             # Remove the systemd service file
-            $SUDO rm /etc/systemd/system/ollama.service > /dev/null 2>&1
+            $SUDO rm /etc/systemd/system/ollama.service
 
             # Copy the contents of /usr/share/ollama to $HOME/.ollama if the directory doesn't exist
             if [ ! -d "$HOME/.ollama" ]; then
-                $SUDO cp -r /usr/share/ollama "$HOME/.ollama"
+                $SUDO cp -r /usr/share/ollama/.ollama/* "$HOME/.ollama"
 
                 # Adjusting permissions and ownership after copying
                 $SUDO chown -R $(whoami):$(id -gn) "$HOME/.ollama"
@@ -131,10 +131,10 @@ migrate_systemd() {
             fi
 
             # Reload systemd configuration to recognize service removal
-            $SUDO systemctl daemon-reload > /dev/null 2>&1
+            $SUDO systemctl daemon-reload
 
             # Remove the ollama user
-            $SUDO userdel -r ollama > /dev/null 2>&1
+            $SUDO userdel -r ollama
         fi
     fi
 }
