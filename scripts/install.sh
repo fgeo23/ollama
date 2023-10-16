@@ -122,6 +122,12 @@ migrate_systemd() {
             # Copy the contents of /usr/share/ollama to $HOME/.ollama if the directory doesn't exist
             if [ ! -d "$HOME/.ollama" ]; then
                 $SUDO cp -r /usr/share/ollama "$HOME/.ollama"
+
+                # Adjusting permissions and ownership after copying
+                $SUDO chown -R $(whoami):$(id -gn) "$HOME/.ollama"
+                if [ -f "$HOME/.ollama/id_ed25519" ]; then
+                    chmod 600 "$HOME/.ollama/id_ed25519"
+                fi
             fi
 
             # Reload systemd configuration to recognize service removal
