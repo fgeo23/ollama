@@ -137,9 +137,6 @@ migrate_systemd() {
 
             # Reload systemd configuration to recognize service removal
             $SUDO systemctl daemon-reload
-
-            # Remove the ollama user
-            $SUDO userdel -r ollama
         fi
     fi
 }
