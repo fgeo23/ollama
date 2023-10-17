@@ -69,32 +69,36 @@ trap install_success EXIT
 
 configure_systemd() {
     status "Creating ollama systemd service..."
-    cat <<EOF | $SUDO tee /etc/systemd/system/ollama.service >/dev/null
+    HOME=$(eval echo ~$(whoami))
+    # create the directories the service will need
+    mkdir -p $HOME/.config/systemd/user/
+    mkdir -p $HOME/.ollama/logs/
+    # add the service for the current user
+    cat <<EOF | $SUDO tee $HOME/.config/systemd/user/ollama.service >/dev/null
 [Unit]
-Description=Ollama Service
-After=network-online.target
+Description=Ollama
 
 [Service]
 ExecStart=$BINDIR/ollama serve
-User=$(whoami)
-Group=$(id -gn)
 Restart=always
 RestartSec=3
-Environment="HOME=$(eval echo ~$(whoami))"
+Environment="HOME=$HOME"
+StandardOutput=file:$HOME/.ollama/logs/server.log 
+StandardError=file:$HOME/.ollama/logs/server.log 
 Environment="PATH=$PATH"
 
 [Install]
 WantedBy=default.target
 EOF
 
-    SYSTEMCTL_RUNNING="$(systemctl is-system-running || true)"
+    SYSTEMCTL_RUNNING="$(systemctl --user is-system-running || true)"
     case $SYSTEMCTL_RUNNING in
         running|degraded)
             status "Enabling and starting ollama service..."
-            $SUDO systemctl daemon-reload
-            $SUDO systemctl enable ollama > /dev/null 2>&1
+            systemctl --user daemon-reload
+            systemctl --user enable ollama
 
-            start_service() { $SUDO systemctl restart ollama; }
+            start_service() { systemctl --user restart ollama; }
             trap start_service EXIT
             ;;
     esac
