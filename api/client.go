@@ -17,6 +17,10 @@ import (
 	"github.com/jmorganca/ollama/version"
 )
 
+const DefaultHost = "127.0.0.1:11434"
+
+var envHost = os.Getenv("OLLAMA_HOST")
+
 type Client struct {
 	base *url.URL
 	http http.Client
@@ -76,10 +80,6 @@ func ClientFromEnvironment() (*Client, error) {
 	}
 
 	return &client, nil
-}
-
-func (c *Client) IsLocal() bool {
-	return c.base.Hostname() == "localhost" || c.base.Hostname() == "127.0.0.1" || c.base.Hostname() == "::1"
 }
 
 func (c *Client) do(ctx context.Context, method, path string, reqData, respData any) error {
