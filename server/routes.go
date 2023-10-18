@@ -202,6 +202,12 @@ func GenerateHandler(c *gin.Context) {
 	ch := make(chan any)
 	go func() {
 		defer close(ch)
+		// an empty request loads the model
+		if req.Prompt == "" && req.Template == "" && req.System == "" {
+			ch <- api.GenerateResponse{CreatedAt: time.Now().UTC(), Model: req.Model, Done: true}
+			return
+		}
+
 		fn := func(r api.GenerateResponse) {
 			loaded.expireAt = time.Now().Add(sessionDuration)
 			loaded.expireTimer.Reset(sessionDuration)
@@ -216,13 +222,8 @@ func GenerateHandler(c *gin.Context) {
 			ch <- r
 		}
 
-		// an empty request loads the model
-		if req.Prompt == "" && req.Template == "" && req.System == "" {
-			ch <- api.GenerateResponse{Model: req.Model, Done: true}
-		} else {
-			if err := loaded.llm.Predict(c.Request.Context(), req.Context, prompt, fn); err != nil {
-				ch <- gin.H{"error": err.Error()}
-			}
+		if err := loaded.llm.Predict(c.Request.Context(), req.Context, prompt, fn); err != nil {
+			ch <- gin.H{"error": err.Error()}
 		}
 	}()
 
