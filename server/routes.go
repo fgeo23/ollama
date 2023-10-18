@@ -162,6 +162,11 @@ func GenerateHandler(c *gin.Context) {
 		return
 	}
 
+	if req.Model == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "model is required"})
+		return
+	}
+
 	model, err := GetModel(req.Model)
 	if err != nil {
 		var pErr *fs.PathError
@@ -251,6 +256,11 @@ func EmbeddingHandler(c *gin.Context) {
 		return
 	}
 
+	if req.Model == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "model is required"})
+		return
+	}
+
 	model, err := GetModel(req.Model)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -288,6 +298,11 @@ func PullModelHandler(c *gin.Context) {
 		return
 	}
 
+	if req.Name == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "name is required"})
+		return
+	}
+
 	ch := make(chan any)
 	go func() {
 		defer close(ch)
@@ -319,6 +334,11 @@ func PushModelHandler(c *gin.Context) {
 	var req api.PushRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if req.Name == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 		return
 	}
 
@@ -354,6 +374,11 @@ func CreateModelHandler(c *gin.Context) {
 		return
 	}
 
+	if req.Name == "" || req.Path == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "name and path are required"})
+		return
+	}
+
 	ch := make(chan any)
 	go func() {
 		defer close(ch)
@@ -384,6 +409,11 @@ func DeleteModelHandler(c *gin.Context) {
 		return
 	}
 
+	if req.Name == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "name is required"})
+		return
+	}
+
 	if err := DeleteModel(req.Name); err != nil {
 		if os.IsNotExist(err) {
 			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("model '%s' not found", req.Name)})
@@ -411,6 +441,11 @@ func ShowModelHandler(c *gin.Context) {
 	var req api.ShowRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if req.Name == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 		return
 	}
 
@@ -522,6 +557,11 @@ func CopyModelHandler(c *gin.Context) {
 	var req api.CopyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if req.Source == "" || req.Destination == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "source add destination are required"})
 		return
 	}
 
